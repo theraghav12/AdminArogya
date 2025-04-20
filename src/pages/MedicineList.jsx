@@ -1,46 +1,54 @@
 import { useState, useEffect } from 'react';
+import API from '../services/api';
 import MedicineCard from '../components/MedicineCard';
 import AddMedicineModal from '../components/AddMedicineModal';
+import EditMedicineModal from '../components/EditMedicineModal';
 
 const MedicineList = () => {
   const [medicines, setMedicines] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedMedicine, setSelectedMedicine] = useState(null);
+
+  const fetchMedicines = async () => {
+    setLoading(true);
+    try {
+      const res = await API.get('/medicines/dashboard');
+      setMedicines(res.data);
+    } catch (err) {
+      console.error('Error fetching medicines:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchMedicines = async () => {
-      const token = localStorage.getItem('adminToken'); // Get token from localStorage
-      if(!token){
-        console.error('No admin token');
-        return;
-      }
-      
-
-      try {
-        const response = await fetch('http://localhost:5000/api/medicines/dashboard', {
-          headers: {
-            'Authorization': `Bearer ${token}`, // Include token in Authorization header
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch medicines');
-        }
-
-        const data = await response.json();
-        setMedicines(data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching medicines:', error);
-        setLoading(false);
-      }
-    };
-
     fetchMedicines();
   }, []);
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this medicine?')) return;
+    try {
+      await API.delete(`/medicines/${id}`);
+      setMedicines((prev) => prev.filter((med) => med._id !== id));
+    } catch (err) {
+      console.error('Error deleting medicine:', err);
+    }
+  };
+
+  const handleEdit = (medicine) => {
+    setSelectedMedicine(medicine);
+  };
+
   const handleAddMedicine = (newMedicine) => {
     setMedicines([newMedicine, ...medicines]);
+  };
+
+  const handleUpdateMedicine = (updatedMedicine) => {
+    setMedicines((prev) =>
+      prev.map((med) => (med._id === updatedMedicine._id ? updatedMedicine : med))
+    );
+    setSelectedMedicine(null);
   };
 
   return (
@@ -48,30 +56,41 @@ const MedicineList = () => {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Medicine Inventory</h1>
         <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-md transition duration-300"
+          onClick={() => setIsAddModalOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
         >
           Add New Medicine
         </button>
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
+        <div className="text-center">Loading...</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {medicines.map((medicine) => (
-            <MedicineCard key={medicine._id} medicine={medicine} />
+            <MedicineCard
+              key={medicine._id}
+              medicine={medicine}
+              onEdit={() => handleEdit(medicine)}
+              onDelete={() => handleDelete(medicine._id)}
+            />
           ))}
         </div>
       )}
 
-      <AddMedicineModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)}
+      <AddMedicineModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
         onAdd={handleAddMedicine}
       />
+
+      {selectedMedicine && (
+        <EditMedicineModal
+          medicine={selectedMedicine}
+          onClose={() => setSelectedMedicine(null)}
+          onUpdate={handleUpdateMedicine}
+        />
+      )}
     </div>
   );
 };
