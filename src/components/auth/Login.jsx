@@ -15,6 +15,7 @@ const Login = () => {
       localStorage.setItem('adminToken', token);
       navigate('/dashboard');
     } catch (err) {
+      
       setError('Invalid credentials');
     }
   };
