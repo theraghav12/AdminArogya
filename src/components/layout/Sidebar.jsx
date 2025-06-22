@@ -49,6 +49,7 @@ const Sidebar = ({ isMobileMenuOpen, toggleMobileMenu }) => {
         { path: '/medicines/all', label: 'All Products' },
         { path: '/medicines/categories', label: 'Categories' },
         { path: '/medicines/inventory', label: 'Inventory' },
+        { path: '/medicines/missing-images', label: 'Missing Images' },
       ]
     },
     { 

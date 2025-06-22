@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -15,6 +16,7 @@ import Dashboard from './pages/Dashboard';
 import AllProducts from './pages/products/AllProducts';
 import Categories from './pages/products/Categories';
 import Inventory from './pages/products/Inventory';
+import MissingImages from './pages/products/MissingImages';
 
 // Orders - TODO: Uncomment when components are created
 // import AllOrders from './pages/orders/AllOrders';
@@ -70,6 +72,7 @@ function App() {
               <Route path="all" element={<AllProducts />} />
               <Route path="categories" element={<Categories />} />
               <Route path="inventory" element={<Inventory />} />
+              <Route path="missing-images" element={<MissingImages />} />
             </Route>
             
             {/* Orders - TODO: Uncomment when components are created */}
