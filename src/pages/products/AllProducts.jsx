@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import AddMedicineModal from '../../components/AddMedicineModal';
 import MedicineCard from '../../components/MedicineCard';
 import EditMedicineModal from '../../components/EditMedicineModal';
+import BulkUploadModal from '../../components/BulkUploadModal';
 
 const AllProducts = () => {
   const [products, setProducts] = useState([]);
@@ -16,6 +17,7 @@ const AllProducts = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [sortBy, setSortBy] = useState('name_asc');
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -187,13 +189,20 @@ const AllProducts = () => {
               </div>
             </div>
             
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors whitespace-nowrap"
-            >
-              <FaPlus className="mr-2" />
-              Add Product
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2"
+              >
+                <FaPlus /> Add Product
+              </button>
+              <button
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center gap-2"
+                onClick={() => setIsBulkModalOpen(true)}
+              >
+                Bulk Upload
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -425,6 +434,14 @@ const AllProducts = () => {
           onUpdate={handleUpdateMedicine}
         />
       )}
+      <BulkUploadModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        onUploadSuccess={() => {
+          setIsBulkModalOpen(false);
+          fetchProducts();
+        }}
+      />
     </div>
   );
 };
