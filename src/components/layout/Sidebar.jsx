@@ -13,7 +13,8 @@ import {
   FaUsers,
   FaChartLine,
   FaBars,
-  FaTimes as FaClose
+  FaTimes as FaClose,
+  FaFlask
 } from 'react-icons/fa';
 
 const Sidebar = ({ isMobileMenuOpen, toggleMobileMenu }) => {
@@ -51,6 +52,11 @@ const Sidebar = ({ isMobileMenuOpen, toggleMobileMenu }) => {
         { path: '/medicines/inventory', label: 'Inventory' },
         { path: '/medicines/missing-images', label: 'Missing Images' },
       ]
+    },
+    { 
+      path: '/lab-tests', 
+      icon: <FaFlask className="text-lg" />, 
+      label: 'Lab Tests'
     },
     { 
       path: '/orders', 

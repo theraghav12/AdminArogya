@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginAdmin } from '../../services/auth';
+import API from '../../services/api';
 import { FaSignInAlt, FaLock, FaEnvelope } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
@@ -29,9 +30,12 @@ const Login = () => {
     setError('');
     
     try {
-      const { token } = await loginAdmin(credentials);
+      const response = await loginAdmin(credentials);
       if (isMounted) {
-        localStorage.setItem('adminToken', token);
+        // Store the token in localStorage
+        localStorage.setItem('adminToken', response.token);
+        // Set default authorization header for all requests
+        API.defaults.headers.common['Authorization'] = `Bearer ${response.token}`;
         navigate('/dashboard');
       }
     } catch (err) {

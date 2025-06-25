@@ -18,6 +18,9 @@ import Categories from './pages/products/Categories';
 import Inventory from './pages/products/Inventory';
 import MissingImages from './pages/products/MissingImages';
 
+// Lab Tests
+import LabTests from './pages/LabTests';
+
 // Orders - TODO: Uncomment when components are created
 // import AllOrders from './pages/orders/AllOrders';
 // import PendingOrders from './pages/orders/PendingOrders';
@@ -74,6 +77,9 @@ function App() {
               <Route path="inventory" element={<Inventory />} />
               <Route path="missing-images" element={<MissingImages />} />
             </Route>
+
+            {/* Lab Tests */}
+            <Route path="/lab-tests" element={<LabTests />} />
             
             {/* Orders - TODO: Uncomment when components are created */}
             {/* <Route path="/orders">
