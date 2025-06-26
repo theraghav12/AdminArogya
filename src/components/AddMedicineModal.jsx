@@ -225,28 +225,28 @@ const AddMedicineModal = ({ isOpen, onClose, onAdd, isEditing = false }) => {
     }
     
     // Validate file types and sizes
-    const validFiles = [];
-    const invalidFiles = [];
-    
-    files.forEach(file => {
+    const validFiles = files.filter(file => {
       const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
       const maxSize = 5 * 1024 * 1024; // 5MB
       
       if (!validTypes.includes(file.type)) {
-        invalidFiles.push(`${file.name}: Invalid file type`);
-      } else if (file.size > maxSize) {
-        invalidFiles.push(`${file.name}: File too large (max 5MB)`);
-      } else {
-        validFiles.push(file);
+        setErrors(prev => ({
+          ...prev,
+          images: 'Only JPG, PNG, or WEBP images are allowed'
+        }));
+        return false;
       }
+      
+      if (file.size > maxSize) {
+        setErrors(prev => ({
+          ...prev,
+          images: 'Image size must be less than 5MB'
+        }));
+        return false;
+      }
+      
+      return true;
     });
-    
-    if (invalidFiles.length > 0) {
-      setErrors(prev => ({
-        ...prev,
-        images: `Some files were not uploaded: ${invalidFiles.join('; ')}`
-      }));
-    }
     
     if (validFiles.length === 0) return;
 
@@ -254,13 +254,13 @@ const AddMedicineModal = ({ isOpen, onClose, onAdd, isEditing = false }) => {
     const previews = validFiles.map(file => ({
       id: URL.createObjectURL(file),
       name: file.name,
-      file,
-      size: (file.size / 1024 / 1024).toFixed(2) + ' MB'
+      file
     }));
 
     setImagePreviews(prev => [...prev, ...previews]);
     setImageFiles(prev => [...prev, ...validFiles]);
     e.target.value = ''; // Reset file input
+    setErrors(prev => ({ ...prev, images: undefined }));
   }, [imageFiles.length]);
 
   const removeImage = useCallback((index) => {
@@ -286,7 +286,9 @@ const AddMedicineModal = ({ isOpen, onClose, onAdd, isEditing = false }) => {
     if (formData.stock.quantity < 0) newErrors.stockQuantity = 'Stock quantity cannot be negative';
     
     // Image validation
-    if (imageFiles.length === 0) newErrors.images = 'At least one product image is required';
+    if (imageFiles.length === 0) {
+      newErrors.images = 'At least one product image is required';
+    }
     
     // Date validation
     if (formData.packaging.expiryDate) {
@@ -304,14 +306,22 @@ const AddMedicineModal = ({ isOpen, onClose, onAdd, isEditing = false }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submission started');
     
     // Validate form
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
+      console.log('Validation errors:', formErrors);
+      // Show first error to user
+      const firstError = formErrors[Object.keys(formErrors)[0]];
+      alert(`Validation Error: ${firstError}`);
+      
+      // Update errors state
       setErrors(formErrors);
+      
       // Scroll to first error
-      const firstError = Object.keys(formErrors)[0];
-      document.querySelector(`[name="${firstError}"]`)?.scrollIntoView({ 
+      const firstErrorField = Object.keys(formErrors)[0];
+      document.querySelector(`[name="${firstErrorField}"]`)?.scrollIntoView({ 
         behavior: 'smooth', 
         block: 'center' 
       });
@@ -323,14 +333,11 @@ const AddMedicineModal = ({ isOpen, onClose, onAdd, isEditing = false }) => {
     try {
       const formDataToSend = new FormData();
       
-      // Add image files
-      imageFiles.forEach(file => {
-        formDataToSend.append('images', file);
-      });
-
       // Prepare data for submission
       const dataToSend = {
         ...formData,
+        // Add image files to the data
+        images: imageFiles,
         // Convert string dates to proper format
         packaging: {
           ...formData.packaging,
@@ -354,20 +361,30 @@ const AddMedicineModal = ({ isOpen, onClose, onAdd, isEditing = false }) => {
       // Append all fields to form data
       Object.keys(dataToSend).forEach(key => {
         const value = dataToSend[key];
+        
+        // Skip appending the images array here as we'll handle it separately
+        if (key === 'images') return;
+        
         if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
           // Handle nested objects
           formDataToSend.append(key, JSON.stringify(value));
-        } else if (Array.isArray(value)) {
-          // Handle arrays
-          value.forEach((item, index) => {
-            formDataToSend.append(`${key}[${index}]`, item);
-          });
+        } else if (Array.isArray(value) && key !== 'images') {
+          // Handle arrays (except images)
+          formDataToSend.append(key, JSON.stringify(value));
         } else if (value !== null && value !== undefined) {
           // Handle primitive values
           formDataToSend.append(key, value);
         }
       });
+      
+      // Append image files separately
+      imageFiles.forEach((file, index) => {
+        formDataToSend.append('images', file);
+      });
 
+      console.log('Sending request to /medicines/add');
+      console.log('Request data:', formDataToSend);
+      
       // Submit the form
       const response = await API.post('/medicines/add', formDataToSend, {
         headers: { 
@@ -376,18 +393,34 @@ const AddMedicineModal = ({ isOpen, onClose, onAdd, isEditing = false }) => {
         }
       });
 
+      console.log('Add medicine response:', response.data);
+      
       // Call the onAdd callback with the new medicine
       if (onAdd) {
-        onAdd(response.data);
+        await onAdd(response.data);
       }
       
-      // Close the modal
+      // Show success message and close the modal
+      alert('Medicine added successfully!');
       onClose();
     } catch (error) {
       console.error('Error adding medicine:', error);
+      const errorMessage = error.response?.data?.message || 
+                         error.message || 
+                         'Failed to add medicine. Please try again.';
+      console.error('Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+      
+      // Show error to user
+      alert(`Error: ${errorMessage}`);
+      
+      // Update errors state
       setErrors(prev => ({
         ...prev,
-        submit: error.response?.data?.message || 'Failed to add medicine. Please try again.'
+        submit: errorMessage
       }));
     } finally {
       setIsSubmitting(false);
@@ -1209,89 +1242,52 @@ const AddMedicineModal = ({ isOpen, onClose, onAdd, isEditing = false }) => {
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium text-gray-900">Images</h3>
-                    <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                      <div className="space-y-1 text-center">
-                        <svg
-                          className="mx-auto h-12 w-12 text-gray-400"
-                          stroke="currentColor"
-                          fill="none"
-                          viewBox="0 0 48 48"
-                          aria-hidden="true"
-                        >
-                          <path
-                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                            strokeWidth={2}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <div className="flex text-sm text-gray-600">
-                          <label
-                            htmlFor="file-upload"
-                            className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
-                          >
-                            <span>Upload files</span>
-                            <input
-                              id="file-upload"
-                              name="file-upload"
-                              type="file"
-                              className="sr-only"
-                              multiple
-                              accept="image/*"
-                              onChange={handleImageUpload}
-                              disabled={formData.images.length >= 5}
-                            />
-                          </label>
-                          <p className="pl-1">or drag and drop</p>
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          PNG, JPG, GIF up to 5MB
-                        </p>
-                      </div>
+                  <div className="col-span-full">
+                    <label className="block mb-2">Product Images</label>
+                    
+                    <div className="flex items-center gap-4 mb-4">
+                      <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-md transition">
+                        Select Images
+                        <input 
+                          type="file" 
+                          multiple 
+                          onChange={handleImageUpload} 
+                          accept="image/jpeg, image/png, image/webp"
+                          className="hidden" 
+                        />
+                      </label>
+                      <span className="text-sm text-gray-500">
+                        {imagePreviews.length} {imagePreviews.length === 1 ? 'image' : 'images'} selected
+                      </span>
                     </div>
-                    {errors.images && (
-                      <p className="mt-1 text-sm text-red-600">{errors.images}</p>
-                    )}
-                    <p className="text-xs text-gray-500">
-                      {formData.images.length} of 5 files uploaded
-                    </p>
-                  </div>
-
-                {formData.images.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium text-gray-900">Preview</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                      {formData.images.map((preview, index) => (
-                        <div key={index} className="relative group rounded-md overflow-hidden border border-gray-200">
-                          <img
-                            src={preview.id}
-                            alt={`Preview ${index + 1}`}
-                            className="h-32 w-full object-cover rounded-md"
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
+                    
+                    {errors.images && <p className="text-red-500 text-sm mt-1">{errors.images}</p>}
+                    
+                    {imagePreviews.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+                        {imagePreviews.map((preview, index) => (
+                          <div key={`preview-${index}`} className="relative group">
+                            <div className="w-full h-32 bg-gray-100 rounded-md overflow-hidden">
+                              <img 
+                                src={preview.id} 
+                                alt={`Preview ${index}`} 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
                             <button
                               type="button"
                               onClick={() => removeImage(index)}
-                              className="p-1 bg-red-600 text-white rounded-full hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                             >
-                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                               </svg>
                             </button>
                           </div>
-                          <div className="absolute top-1 right-1 bg-black bg-opacity-50 text-white text-xs px-1.5 py-0.5 rounded">
-                            {preview.name.length > 15 ? `${preview.name.substring(0, 12)}...` : preview.name}
-                          </div>
-                          <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1.5 py-0.5 rounded">
-                            {preview.size}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
               </div>
             )}
           </div>
