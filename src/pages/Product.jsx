@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import API from '../services/api';
 import {
   Card,
   CardContent,
@@ -81,7 +81,7 @@ const ProductsPage = () => {
 
   const fetchMedicines = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/medicines');
+      const response = await API.get('/medicines/dashboard');
       setMedicines(response.data);
     } catch (error) {
       console.error('Error fetching medicines:', error);
@@ -248,7 +248,7 @@ const ProductsPage = () => {
         }
       };
 
-      await axios.post('http://localhost:5000/api/medicines/add', formData, config);
+      await API.post('/medicines/add', formData, config);
       
       setSnackbarMessage('Medicine added successfully');
       setSnackbarSeverity('success');

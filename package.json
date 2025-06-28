@@ -1,5 +1,5 @@
 {
-  "name": "react-tailwind-css-starter-pack",
+  "name": "Admin Arogya",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -31,13 +31,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thepranaygupta/react-tailwind-css-starter-pack.git"
+    "url": ""
   },
-  "author": "Pranay Gupta",
+  "author": "Abhay",
   "bugs": {
-    "url": "https://github.com/thepranaygupta/react-tailwind-css-starter-pack/issues"
+    "url": ""
   },
-  "proxy": "http://localhost:5001",
+  "proxy": "https://api.arogyarx.com/api",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
