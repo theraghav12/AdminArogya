@@ -20,13 +20,9 @@ import MissingImages from './pages/products/MissingImages';
 
 // Lab Tests
 import LabTests from './pages/LabTests';
-import Orders from './pages/Order';
 
-// Orders - TODO: Uncomment when components are created
-// import AllOrders from './pages/orders/AllOrders';
-// import PendingOrders from './pages/orders/PendingOrders';
-// import CompletedOrders from './pages/orders/CompletedOrders';
-// import CancelledOrders from './pages/orders/CancelledOrders';
+// Orders
+import Orders from './pages/Orders';
 
 // Customers - TODO: Uncomment when component is created
 // import CustomerList from './pages/customers/CustomerList';
@@ -78,20 +74,12 @@ function App() {
               <Route path="inventory" element={<Inventory />} />
               <Route path="missing-images" element={<MissingImages />} />
             </Route>
-            <Route path='/orders' element={<Orders/>}>
-
-            </Route>
+           
             {/* Lab Tests */}
             <Route path="/lab-tests" element={<LabTests />} />
             
-            {/* Orders - TODO: Uncomment when components are created */}
-            {/* <Route path="/orders">
-              <Route index element={<Navigate to="all" replace />} />
-              <Route path="all" element={<AllOrders />} />
-              <Route path="pending" element={<PendingOrders />} />
-              <Route path="completed" element={<CompletedOrders />} />
-              <Route path="cancelled" element={<CancelledOrders />} />
-            </Route> */}
+            {/* Orders */}
+            <Route path="/orders" element={<Orders />} />
             
             {/* Customers - TODO: Uncomment when component is created */}
             {/* <Route path="/customers" element={<CustomerList />} /> */}

@@ -52,11 +52,9 @@ const Topbar = ({ toggleSidebar, isSidebarCollapsed }) => {
               onClick={toggleSidebar}
               className="text-gray-500 hover:text-gray-600 dark:text-gray-300 dark:hover:text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <FiMenu className="h-6 w-6" />
+            
             </button>
-            <h1 className="ml-4 text-xl font-semibold text-gray-800 dark:text-white hidden sm:block">
-              Dashboard
-            </h1>
+            
           </div>
 
           {/* Right section */}

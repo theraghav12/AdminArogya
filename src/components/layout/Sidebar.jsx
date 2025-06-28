@@ -63,7 +63,7 @@ const Sidebar = ({ isMobileMenuOpen, toggleMobileMenu }) => {
       icon: <FaShoppingCart className="text-lg" />, 
       label: 'Orders',
       submenu: [
-        { path: '/orders/all', label: 'All Orders' },
+        { path: '/orders', label: 'All Orders' },
         { path: '/orders/pending', label: 'Pending' },
         { path: '/orders/completed', label: 'Completed' },
         { path: '/orders/cancelled', label: 'Cancelled' },
