@@ -17,6 +17,7 @@ import AllProducts from './pages/products/AllProducts';
 import Categories from './pages/products/Categories';
 import Inventory from './pages/products/Inventory';
 import MissingImages from './pages/products/MissingImages';
+import AIProductEnhancement from './pages/products/AIProductEnhancement';
 
 // Lab Tests
 import LabTests from './pages/LabTests';
@@ -73,6 +74,7 @@ function App() {
               <Route path="categories" element={<Categories />} />
               <Route path="inventory" element={<Inventory />} />
               <Route path="missing-images" element={<MissingImages />} />
+              <Route path="ai-enhance" element={<AIProductEnhancement />} />
             </Route>
            
             {/* Lab Tests */}

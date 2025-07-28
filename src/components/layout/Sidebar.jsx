@@ -14,7 +14,8 @@ import {
   FaChartLine,
   FaBars,
   FaTimes as FaClose,
-  FaFlask
+  FaFlask,
+  FaMagic
 } from 'react-icons/fa';
 
 const Sidebar = ({ isMobileMenuOpen, toggleMobileMenu }) => {
@@ -51,6 +52,7 @@ const Sidebar = ({ isMobileMenuOpen, toggleMobileMenu }) => {
         { path: '/medicines/categories', label: 'Categories' },
         { path: '/medicines/inventory', label: 'Inventory' },
         { path: '/medicines/missing-images', label: 'Missing Images' },
+        { path: '/medicines/ai-enhance', label: 'AI Product Enhancement', icon: <FaMagic className="mr-2" /> }
       ]
     },
     { 
